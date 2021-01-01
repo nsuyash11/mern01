@@ -3,6 +3,7 @@ const {
   validateUserSignUp,
   validateUserSignIn,
 } = require("../models/user");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 //signing in for already registered users
@@ -31,7 +32,7 @@ exports.signIn = async (req, res) => {
     }
 
     // if user is found make sure the email and password match
-    const isCredentialsValid = bcrypt.compare(password, user.password);
+    const isCredentialsValid = await bcrypt.compare(password, user.password);
     if (!isCredentialsValid) {
       return res.status(400).json({
         error: "Invalid Email - Password credentials combination",
@@ -40,19 +41,22 @@ exports.signIn = async (req, res) => {
       });
     }
 
-    let { _id, name, email: mail, role } = user;
-
     // generate a signed token
-    const token = user.generateAuthToken();
+    const token = jwt.sign(
+      { _id: this._id, name: this.name, email: this.email, role: this.role },
+      process.env.JWT_SECRET
+    );
+
+    console.log(token);
 
     // persist the token as 't' in cookie with expiry date
     res.cookie("token", token, { expire: new Date() + 9999 });
 
     return res.header("x-auth-token", token).status(200).json({
-      _id,
-      name,
-      email: mail,
-      role,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     });
   } catch (err) {
     console.log(err);

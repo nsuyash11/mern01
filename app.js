@@ -31,6 +31,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
+
 //server spin
 const port = process.env.SERVER_PORT || 8000;
 
